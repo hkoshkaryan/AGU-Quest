@@ -24,13 +24,29 @@ class EscapeAction(Action):  # exits our game
     def perform(self, engine: Engine, entity: Entity) -> None:
         raise SystemExit()
 
-
-class MovementAction(Action):  # movement actions of the player
+class ActionWithDirection(Action):
     def __init__(self, dx: int, dy: int):
         super().__init__()
 
-        self.dx = dx  # describes what direction the player is attempting to move.
-        self.dy = dy
+        self.dx=dx
+        self.dy=dy
+
+    def perform(self, engine: Engine, entity: Entity) -> None:
+        raise NotImplementedError()
+
+
+class MeleeAction(ActionWithDirection):
+    def perform(self, engine: Engine, entity: Entity) -> None:
+        dest_x = entity.x + self.dx
+        dest_y = entity.y + self.dy
+        target  =   engine.game_map.get_blocking_entity_at_location(dest_x,dest_y)
+        if not target:
+            return  # No entity to attack.
+
+        print(f"You kick the {target.name}, you hit like a wuss.")
+
+
+class MovementAction(ActionWithDirection):  # movement actions of the player
 
     def perform(self, engine: Engine, entity: Entity) -> None:
         dest_x = entity.x + self.dx
@@ -40,5 +56,18 @@ class MovementAction(Action):  # movement actions of the player
             return  # Destination is out of bounds.
         if not engine.game_map.tiles["walkable"][dest_x, dest_y]:
             return  # Destination is blocked by a tile.
+        if engine.game_map.get_blocking_entity_at_location(dest_x, dest_y):
+            return  # Destination is blocked by an entity.
 
         entity.move(self.dx, self.dy)
+
+class BumpAction(ActionWithDirection):
+    def perform(self, engine: Engine, entity: Entity) -> None:
+        dest_x = entity.x + self.dx
+        dest_y = entity.y + self.dy
+
+        if engine.game_map.get_blocking_entity_at_location(dest_x, dest_y):
+            return MeleeAction(self.dx, self.dy).perform(engine, entity)
+
+        else:
+            return MovementAction(self.dx, self.dy).perform(engine, entity)

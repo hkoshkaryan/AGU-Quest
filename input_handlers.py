@@ -2,7 +2,7 @@ from typing import Optional  # type hinting, optional denotes none possible
 
 import tcod.event  # importing tcod's event system only.
 
-from actions import Action, EscapeAction, MovementAction  # imports from the actions.py file
+from actions import Action, EscapeAction, BumpAction  # imports from the actions.py file
 
 
 class EventHandler(tcod.event.EventDispatch[Action]):  # create EventHandler, send event to proper method based on input
@@ -15,13 +15,13 @@ class EventHandler(tcod.event.EventDispatch[Action]):  # create EventHandler, se
         key = event.sym
 
         if key == tcod.event.K_UP:
-            action = MovementAction(dx=0, dy=-1)
+            action = BumpAction(dx=0, dy=-1)
         elif key == tcod.event.K_DOWN:
-            action = MovementAction(dx=0, dy=1)
+            action = BumpAction(dx=0, dy=1)
         elif key == tcod.event.K_LEFT:
-            action = MovementAction(dx=-1, dy=0)
+            action = BumpAction(dx=-1, dy=0)
         elif key == tcod.event.K_RIGHT:
-            action = MovementAction(dx=1, dy=0)
+            action = BumpAction(dx=1, dy=0)
 
         elif key == tcod.event.K_ESCAPE:
             action = EscapeAction()
