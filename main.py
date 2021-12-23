@@ -1,16 +1,15 @@
-#!urs/bin/env python3
+#!/usr/bin/env python3
 import copy
 
 import tcod
 
 from engine import Engine
 import entity_factories
-from input_handlers import EventHandler
 from procgen import generate_dungeon
 
 
 def main() -> None:
-    screen_width = 80  # variables for screen size
+    screen_width = 80
     screen_height = 50
 
     map_width = 80
@@ -23,40 +22,37 @@ def main() -> None:
     max_monsters_per_room = 2
 
     tileset = tcod.tileset.load_tilesheet(
-        "dejavu10x10_gs_tc.png", 32, 8, tcod.tileset.CHARMAP_TCOD  # Telling tcod what font to use
+        "dejavu10x10_gs_tc.png", 32, 8, tcod.tileset.CHARMAP_TCOD
     )
-
-    event_handler = EventHandler()  # instance of our EventHandler() class
 
     player = copy.deepcopy(entity_factories.player)
 
-    game_map = generate_dungeon(
+    engine = Engine(player=player)
+
+    engine.game_map = generate_dungeon(
         max_rooms=max_rooms,
         room_min_size=room_min_size,
         room_max_size=room_max_size,
         map_width=map_width,
         map_height=map_height,
         max_monsters_per_room=max_monsters_per_room,
-        player=player
+        engine=engine,
     )
+    engine.update_fov()
 
-    engine = Engine(event_handler=event_handler, game_map=game_map, player=player)
-
-    with tcod.context.new_terminal(  # codeblock that creates the screen
-            screen_width,
-            screen_height,
-            tileset=tileset,
-            title="AGU Quest",
-            vsync=True,
-    ) as context:  # console which we draw to
-        root_console = tcod.Console(screen_width, screen_height, order="F")  # "F" makes numpy access arrays in x,y
-        while True:  # game loop, won't end until we close the game.
+    with tcod.context.new_terminal(
+        screen_width,
+        screen_height,
+        tileset=tileset,
+        title="AGU Quest",
+        vsync=True,
+    ) as context:
+        root_console = tcod.Console(screen_width, screen_height, order="F")
+        while True:
             engine.render(console=root_console, context=context)
 
-            events = tcod.event.wait()
-
-            engine.handle_events(events)
+            engine.event_handler.handle_events()
 
 
-if __name__ == "__main__":  # boilerplate code that stops the user from accidentally invoking the script
+if __name__ == "__main__":
     main()
